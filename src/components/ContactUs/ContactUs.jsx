@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import img2 from "../../Assets/img2.jpg"; // Ensure img2 is a valid image path
+import img2 from "../../Assets/img2.jpg"; 
 
 const ContactUs = () => {
   const [formData, setFormData] = useState({

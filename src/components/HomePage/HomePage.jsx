@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import webbg from "../../Assets/webbg.jpg";
 import img1 from "../../Assets/img1.jpg";
@@ -10,6 +10,17 @@ function HomePage() {
   const handleStartClick = () => {
     navigate("/register"); // Step 2: Navigate to the register page on button click
   };
+
+  useEffect(()=> {
+      goToDatshBoard()
+  },[])
+
+
+  const user = localStorage.getItem("token")
+
+  const goToDatshBoard = () => {
+    return user ? navigate("/task") : null
+   }
 
   return (
     <HomeFooter>

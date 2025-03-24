@@ -1,12 +1,15 @@
-import React from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useContext, useEffect } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import Root from "../Root";
 import img2 from "../../Assets/img2.jpg";
 import { FaUser } from "react-icons/fa";
 import logo from "../../Assets/logo.jpg";
+import { AuthContext } from "../../context/AuthContext";
 
 function TaskPage() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const { user, fetchProfile } = useContext(AuthContext);
 
   const handleAboutTaskNavigation = () => {
     navigate("/about-task"); // Navigate to the About Task page
@@ -15,6 +18,9 @@ function TaskPage() {
   const handleWithdrawalNavigation = () => {
     navigate("/withdral");
   };
+  useEffect(() => {
+    fetchProfile();
+  }, []);
 
   return (
     <Root>
@@ -28,7 +34,7 @@ function TaskPage() {
           </div>
         </div>
         {/* User Info Section */}
-        <div className="flex flex-col items-center py-8 lg:mt-0 ">
+        <div className="flex flex-col items-center py-8 mt-10 lg:mt-0 ">
           <div className="flex justify-center mb-6">
             <div className="flex items-center justify-center w-20 h-20 bg-gray-200 rounded-full">
               <button className="text-gray-500">
@@ -41,7 +47,7 @@ function TaskPage() {
           <input
             type="text"
             className="px-4 py-2 mt-0 text-center bg-white shadow"
-            placeholder="User name"
+            placeholder="hcbcb"
           />
           <div className="flex mt-8 space-x-14">
             <button className="w-24 py-2 bg-gray-200 shadow lg:w-48 lg:px-6 md:w-48 ">
@@ -76,13 +82,20 @@ function TaskPage() {
             <div className="text-center">
               <div className="flex items-center justify-center w-20 h-20 bg-gray-300 rounded-full ml-14">
                 <button className="text-gray-500">
-                  <FaUser className="text-4xl " />
-                  <span className="block text-sm">Photo</span>
+                  {
+                    user !== null ? <img
+                    src={user.user.image}
+                    alt="Selected"
+                    className="object-cover w-full h-full rounded-full"
+                  />:<><FaUser className="text-4xl " /> <span className="block text-sm">Photo</span></> 
+                  }
+                  
+                  
                 </button>
               </div>
               <div className="flex flex-col">
                 <button className="w-40 py-1 mt-6 ml-6 text-sm font-bold text-center text-black bg-white">
-                  User Name
+                  {user !== null ? user.user.name : "undfined"}
                 </button>
                 <button className="py-0 mt-6 text-sm font-bold text-center text-white bg-black ml-11 w-28">
                   Referral Code
@@ -91,17 +104,285 @@ function TaskPage() {
 
               <div>
                 <button className="w-40 py-1 ml-6 text-sm font-bold text-center text-black bg-amber-500">
-                  A9****P3L
+                  {user !== null ? user.user.referralCode : "undfined"}
                 </button>
               </div>
             </div>
           </div>
         </div>
 
+        {/* user section */}
+        <div className="relative">
+          {/* Vertical and horizontal white bars */}
+          <div className="absolute w-1 h-10 bg-white lg:top-[-31px] lg:ml-[360px] top-[-32px] ml-[157px]"></div>
+          <div className="lg:w-[700px] h-1  bg-white mt-2 w-[300px]"></div>
+          {/* Person nodes and vertical lines */}
+          <div className="w-1 lg:h-32 bg-white lg:ml-[-2px] lg:mt-[-4px] h-20 ">
+            {/* Person 1 */}
+            <div className="flex flex-col items-center">
+              <div className="justify-center text-center w-20 ml-5 mt-[80px] text-lg font-bold text-black bg-gray-100 lg:px-4 lg:py-1 lg:mt-24 lg:text-3xl lg:w-44">
+                {user?.refUsers?.referredUsers?.[0]?.name ?? "Person-1"}
+              </div>
+              <div className="w-24 ml-6 text-xs text-center text-white bg-red-500 lg:px-4 lg:py-1 lg:w-36 lg:mr-5 lg:text-sm">
+                {user?.refUsers?.referredUsers?.[0]?.phone ?? "Phone Number"}
+              </div>
+              <div className="mt-1">
+                {user?.refUsers?.referredUsers?.[0]?.isVerified ? (
+                  <span className="text-2xl text-green-500">✔</span>
+                ) : (
+                  <span className="text-2xl text-red-500">?</span>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="relative">
+          {/* Person nodes and vertical lines */}
+          <div className="w-1 lg:h-32 bg-white lg:ml-[700px] lg:mt-[-128px] ml-[298px] mt-[-83px] h-20">
+            {/* Person 4*/}
+            <div className="flex flex-col items-center">
+              <div className="justify-center w-20 mt-[80px] text-lg font-bold text-center text-black bg-gray-100 lg:px-4 lg:py-1 lg:text-3xl lg:w-44 mr-3">
+                {user?.refUsers?.referredUsers?.[1]?.name ?? "Person-2"}
+              </div>
+              <div className="w-24 mr-4 text-xs text-center text-white bg-red-500 lg:px-4 lg:py-1 lg:w-36">
+                {user?.refUsers?.referredUsers?.[1]?.phone ?? "Phone Number"}
+              </div>
+              <div className="mt-1">
+                {user?.refUsers?.referredUsers?.[1]?.isVerified ? (
+                  <span className="text-2xl text-green-500">✔</span>
+                ) : (
+                  <span className="text-2xl text-red-500">?</span>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="relative">
+          {/* Person nodes and vertical lines */}
+          <div className="w-1 lg:h-96 bg-white lg:mr-96 lg:mt-[-128px] h-52 mt-[-83px] mr-40">
+            {/* Person 4*/}
+            <div className="flex flex-col items-center">
+              <div className="justify-center w-20 mt-[205px] text-lg font-bold text-center text-black bg-gray-100 lg:px-4 lg:py-1 lg:text-3xl lg:w-44 mr-3 lg:mt-[380px]">
+                {user?.refUsers?.referredUsers?.[2]?.name ?? "Person-3"}
+              </div>
+              <div className="w-24 mr-4 text-xs text-center text-white bg-red-500 lg:px-4 lg:py-1 lg:w-36">
+                {user?.refUsers?.referredUsers?.[2]?.phone ?? "Phone Number "}
+              </div>
+              <div className="mt-1">
+                {user?.refUsers?.referredUsers?.[2]?.isVerified ? (
+                  <span className="text-2xl text-green-500">✔</span>
+                ) : (
+                  <span className="text-2xl text-red-500">?</span>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="relative">
+          {/* Person nodes and vertical lines */}
+          <div className="w-1 bg-white lg:h-96 lg:ml-96 lg:mt-[-380px] h-52 mt-[-208px] ml-40">
+            {/* Person 4*/}
+            <div className="flex flex-col items-center">
+              <div className="justify-center w-20 mt-[205px] text-lg font-bold text-center text-black bg-gray-100 lg:px-4 lg:py-1 lg:text-3xl lg:w-44 mr-3 lg:mt-[380px]">
+                {user?.refUsers?.referredUsers?.[3]?.name ?? "Person-4"}
+              </div>
+              <div className="w-24 mr-4 text-xs text-center text-white bg-red-500 lg:px-4 lg:py-1 lg:w-36">
+                {user?.refUsers?.referredUsers?.[3]?.phone ?? "Phone Number "}
+              </div>
+              <div className="mt-1">
+                {user?.refUsers?.referredUsers?.[3]?.isVerified ? (
+                  <span className="text-2xl text-green-500">✔</span>
+                ) : (
+                  <span className="text-2xl text-red-500">?</span>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="relative">
+          {/* Person nodes and vertical lines */}
+          <div className="w-[65px] bg-white lg:w-[160px] lg:ml-[540px] lg:mt-[-80px] h-1 mt-[-30px] ml-[225px]">
+          <div className="w-1 bg-white lg:w-1 lg:ml-[160px] lg:mt-[-80px] h-[180px] lg:h-[380px] mt-[-30px] ml-[63px]">
+            {/* Person 4*/}
+            <div className="flex flex-col items-center">
+            <div className="justify-center w-20 mt-[180px] text-lg font-bold text-center text-black bg-gray-100 lg:px-4 lg:py-1 lg:text-3xl lg:w-44 mr-3 lg:mt-[380px]">
+                {user?.refUsers?.referredUsers?.[4]?.name ?? "Person-5"}
+              </div>
+              <div className="w-24 mr-4 text-xs text-center text-white bg-red-500 lg:px-4 lg:py-1 lg:w-36">
+                {user?.refUsers?.referredUsers?.[4]?.phone ?? "Phone Number "}
+              </div>
+              <div className="mt-1">
+                {user?.refUsers?.referredUsers?.[4]?.isVerified ? (
+                  <span className="text-2xl text-green-500">✔</span>
+                ) : (
+                  <span className="text-2xl text-red-500">?</span>
+                )}
+              </div>
+            </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="relative">
+          {/* Person nodes and vertical lines */}
+          <div className="w-[90px] bg-white lg:w-[190px] lg:ml-[190px] lg:mt-[-80px] h-1 mt-[-30px] ml-[70px]">
+          <div className="w-[90px] bg-white lg:w-[190px] lg:ml-[-190px] lg:mt-[-80px] h-1 mt-[-30px] ml-[-70px]">
+          
+          <div className="w-1 bg-white lg:w-1 lg:ml-[180px] lg:mt-[-80px] h-[180px] lg:h-[380px] mt-[-30px] ml-[75px]">
+            {/* Person 4*/}
+            <div className="flex flex-col items-center">
+            <div className="justify-center w-20 mt-[180px] text-lg font-bold text-center text-black bg-gray-100 lg:px-4 lg:py-1 lg:text-3xl lg:w-44 mr-3 lg:mt-[380px]">
+                {user?.refUsers?.referredUsers?.[5]?.name ?? "Person-6"}
+              </div>
+              <div className="w-24 mr-4 text-xs text-center text-white bg-red-500 lg:px-4 lg:py-1 lg:w-36">
+                {user?.refUsers?.referredUsers?.[5]?.phone ?? "Phone Number "}
+              </div>
+              <div className="mt-1">
+                {user?.refUsers?.referredUsers?.[5]?.isVerified ? (
+                  <span className="text-2xl text-green-500">✔</span>
+                ) : (
+                  <span className="text-2xl text-red-500">?</span>
+                )}
+              </div>
+            </div>
+            </div>
+          </div>
+          </div>
+        </div>
+
+        <div className="relative">
+          {/* Person nodes and vertical lines */}
+          <div className="w-[75px] bg-white lg:w-[160px] lg:ml-[-354px] lg:mt-[-80px] h-1 mt-[-30px] ml-[-155px]">
+          <div className="w-1 bg-white lg:w-1 lg:ml-[0px] lg:mt-[-80px] h-[180px] lg:h-[380px] mt-[-30px] ml-[0px]">
+            {/* Person 4*/}
+            <div className="flex flex-col items-center">
+            <div className="justify-center w-20 mt-[180px] text-lg font-bold text-center text-black bg-gray-100 lg:px-4 lg:py-1 lg:text-3xl lg:w-44 mr-3 lg:mt-[380px]">
+                {user?.refUsers?.referredUsers?.[6]?.name ?? "Person-7"}
+              </div>
+              <div className="w-24 mr-4 text-xs text-center text-white bg-red-500 lg:px-4 lg:py-1 lg:w-36">
+                {user?.refUsers?.referredUsers?.[6]?.phone ?? "Phone Number "}
+              </div>
+              <div className="mt-1">
+                {user?.refUsers?.referredUsers?.[6]?.isVerified ? (
+                  <span className="text-2xl text-green-500">✔</span>
+                ) : (
+                  <span className="text-2xl text-red-500">?</span>
+                )}
+              </div>
+            </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="relative">
+          {/* Person nodes and vertical lines */}
+          <div className="w-[75px] bg-white lg:w-[160px] lg:ml-[-170px] lg:mt-[310px] h-1 mt-[150px] ml-[-80px]">
+          <div className="w-1 bg-white lg:w-1 lg:ml-[0px] lg:mt-[-80px] h-[180px] lg:h-[280px] mt-[-30px] ml-[0px]">
+            {/* Person 4*/}
+           
+            </div>
+          </div>
+        </div>
+
+        <div className="relative">
+          {/* Person nodes and vertical lines */}
+          <div className="w-[75px] bg-white lg:w-[160px] lg:ml-[140px] lg:mt-[77px] h-1 mt-[26px] ml-[65px]">
+          <div className="w-1 bg-white lg:w-1 lg:ml-[160px] lg:mt-[-80px] h-[180px] lg:h-[280px] mt-[-30px] ml-[75px]">
+            {/* Person 4*/}
+             
+            </div>
+          </div>
+        </div>
+
+        <div className="relative">
+          {/* Person nodes and vertical lines */}
+          <div className="w-[300px] bg-white lg:w-[710px] lg:ml-[0px] lg:mt-[355px] h-1 mt-[205px] ml-[-10px]">
+          <div className="w-1 bg-white lg:w-1 lg:ml-[0px] lg:mt-[-80px] h-[130px] lg:h-[200px] mt-[-30px] ml-[0px]">
+            {/* Person 4*/}
+            <div className="flex flex-col items-center">
+            <div className="justify-center w-20 mt-[120px] text-lg font-bold text-center text-black bg-gray-100 lg:px-4 lg:py-1 lg:text-3xl lg:w-44 mr-3 lg:mt-[200px]">
+                {user?.refUsers?.referredUsers?.[7]?.name ?? "Person-8"}
+              </div>
+              <div className="w-24 mr-4 text-xs text-center text-white bg-red-500 lg:px-4 lg:py-1 lg:w-36">
+                {user?.refUsers?.referredUsers?.[7]?.phone ?? "Phone Number "}
+              </div>
+              <div className="mt-1">
+                {user?.refUsers?.referredUsers?.[7]?.isVerified ? (
+                  <span className="text-2xl text-green-500">✔</span>
+                ) : (
+                  <span className="text-2xl text-red-500">?</span>
+                )}
+              </div>
+            </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="relative">
+          {/* Person nodes and vertical lines */}
+          
+          <div className="w-1 bg-white lg:w-1 lg:ml-[710px] lg:mt-[-4px] h-[128px] lg:h-[200px] mt-[0px] ml-[0px]">
+            {/* Person 4*/}
+            <div className="flex flex-col items-center">
+            <div className="justify-center w-20 mt-[120px] text-lg font-bold text-center text-black bg-gray-100 lg:px-4 lg:py-1 lg:text-3xl lg:w-44 mr-3 lg:mt-[200px]">
+                {user?.refUsers?.referredUsers?.[8]?.name ?? "Person-9"}
+              </div>
+              <div className="w-24 mr-4 text-xs text-center text-white bg-red-500 lg:px-4 lg:py-1 lg:w-36">
+                {user?.refUsers?.referredUsers?.[8]?.phone ?? "Phone Number "}
+              </div>
+              <div className="mt-1">
+                {user?.refUsers?.referredUsers?.[8]?.isVerified ? (
+                  <span className="text-2xl text-green-500">✔</span>
+                ) : (
+                  <span className="text-2xl text-red-500">?</span>
+                )}
+              </div>
+            </div>
+            
+          </div>
+        </div>
+
+        <div className="relative">
+          {/* Person nodes and vertical lines */}
+          
+          <div className="w-1 bg-white lg:w-1 lg:ml-[0px] lg:mt-[-200px] h-[128px] lg:h-[200px] mt-[-130px] ml-[286px]">
+            {/* Person 4*/}
+            <div className="flex flex-col items-center">
+            <div className="justify-center  w-24 mt-[120px] text-lg font-bold text-center text-black bg-gray-100 lg:px-4 lg:py-1 lg:text-3xl lg:w-44 mr-3 lg:mt-[200px]">
+                {user?.refUsers?.referredUsers?.[9]?.name ?? "Person-10"}
+              </div>
+              <div className="w-24 mr-4 text-xs text-center text-white bg-red-500 lg:px-4 lg:py-1 lg:w-36">
+                {user?.refUsers?.referredUsers?.[9]?.phone ?? "Phone Number "}
+              </div>
+              <div className="mt-1">
+                {user?.refUsers?.referredUsers?.[9]?.isVerified ? (
+                  <span className="text-2xl text-green-500">✔</span>
+                ) : (
+                  <span className="text-2xl text-red-500">?</span>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        
+
+        
+
+        
+
+        
+
         {/* Task Complete Section */}
-        <div className="py-1 mt-8 ml-6 text-center text-white bg-green-500 rounded-md w-44">
+        <div className="py-1 ml-6 text-center text-white bg-green-500 rounded-md w-44 mt-[300px]">
           <h2 className="text-xl font-bold">TASK COMPLETE</h2>
         </div>
+
+        
 
         {/* Thank You Message */}
         <div className="px-8 py-4 text-sm text-center">

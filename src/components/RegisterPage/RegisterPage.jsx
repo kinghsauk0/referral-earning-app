@@ -1,45 +1,117 @@
+import axios from "axios";
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
-import img2 from "../../Assets/img2.jpg";
 import {
-  FaUser,
-  FaMobileAlt,
+  FaCamera,
+  FaCheckCircle,
   FaEnvelope,
   FaLock,
+  FaMobileAlt,
+  FaUser,
   FaUserFriends,
-  FaCheckCircle,
-  FaCamera,
 } from "react-icons/fa";
-import Root from "../Root";
+import { Link, useNavigate } from "react-router-dom";
+import img2 from "../../Assets/img2.jpg";
 import logo from "../../Assets/logo.jpg";
-
+import Root from "../Root";
+import { localUrl } from "../../constant/constant";
+import { ToastContainer } from "react-toastify";
 // import const from ""
+import { useSnackbar } from "notistack";
 
 export const RegisterPage = () => {
   // State for form fields and validation
-  const [selectedImage, setSelectedImage] = useState(null);
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [imageUrl, setImageUrl] = useState('');
   const [name, setName] = useState("");
   const [mobile, setMobile] = useState("");
-  const [email, setEmail] = useState("");
+  const [otp, setOtp] = useState("");
   const [password, setPassword] = useState("");
   const [referralCode, setReferralCode] = useState("");
   const [otpSent, setOtpSent] = useState(false);
-  const [errors, setErrors] = useState({});
+  const [otpVerified, setOtpVerified] = useState(false);
+  //const [errors, setErrors] = useState({});
+
+  const [isNameValid, setIsNameVaild] = useState(false);
+  const [isPhoneValid, setIsPhoneVaild] = useState(false);
+  const [isOTPValid, setIsOTPVaild] = useState(false);
+  const [isPasswordValid, setIsPasswordVaild] = useState(false);
+  const [isReferralCodeValid, setIsReferralCodeVaild] = useState(false);
+  const { enqueueSnackbar } = useSnackbar();
+  
+  const navigate = useNavigate();
 
   // Handle image selection
-  const handleImageChange = (e) => {
-    const file = e.target.files[0];
+  const handleFileChange = (e) => {
+    const file = e.target.files?.[0];
     if (file) {
       const reader = new FileReader();
-      reader.onloadend = () => {
-        setSelectedImage(reader.result); // Set image preview
+      reader.onload = (event) => {
+        if (event.target) {
+          const result = event.target.result;
+          if (typeof result === 'string') {
+            setSelectedFile(file);
+            setImageUrl(result);
+          } else {
+            console.log('Unexpected file reader result type.');
+          }
+        }
       };
       reader.readAsDataURL(file);
     }
   };
 
+  const handleNameValidate = (e) => {
+    setName(e.target.value);
+
+    if (e.target.value.length >= 3) {
+      setIsNameVaild(true);
+    } else {
+      setIsNameVaild(false);
+    }
+  };
+
+  const handlePhoneValidate = (e) => {
+    setMobile(e.target.value);
+
+    if (e.target.value.length === 10) {
+      setIsPhoneVaild(true);
+    } else {
+      setIsPhoneVaild(false);
+    }
+  };
+
+  const handleOTPValidate = (e) => {
+    setOtp(e.target.value);
+
+    if (e.target.value.length === 6) {
+      setIsOTPVaild(true);
+    } else {
+      setIsOTPVaild(false);
+    }
+  };
+
+  const handlePasswordValidate = (e) => {
+    setPassword(e.target.value);
+
+    if (e.target.value.length >= 6) {
+      setIsPasswordVaild(true);
+    } else {
+      setIsPasswordVaild(false);
+    }
+  };
+
+  const handleRefferValidate = (e) => {
+    setReferralCode(e.target.value);
+
+    if (e.target.value.length >= 3) {
+      setIsReferralCodeVaild(true);
+    } else {
+      setIsReferralCodeVaild(false);
+    }
+  };
+
   // Form validation function
-  const validate = () => {
+ /* const validate = () => {
     let isValid = true;
     let errors = {};
 
@@ -56,7 +128,7 @@ export const RegisterPage = () => {
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!email || !emailRegex.test(email)) {
-      errors.email = "Please enter a valid email.";
+      errors.email = "Please enter a valid code";
       isValid = false;
     }
 
@@ -66,46 +138,165 @@ export const RegisterPage = () => {
     }
 
     if (referralCode.length < 6) {
-      errors.referralCode = "ReferralCode is  required.";
+      errors.referralCode = "Referral Code is  required.";
       isValid = false;
     }
 
     setErrors(errors);
     return isValid;
-  };
+  };*/
 
   // Send OTP to the provided mobile number
-  const handleSendOtp = () => {
-    fetch(`https://lokardobackend.onrender.com/auth/send-otp`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ mobile }),
-    })
-      .then((response) => response.json())
-      .then((data) => {
-        if (data.success) {
+  const handleSendOtp = async () => {
+    try {
+      if (isNameValid && isPhoneValid) {
+        const formData = new FormData();
+        formData.append("name", name);
+        formData.append("phone", mobile);
+
+        // Append image file correctly
+        if (selectedFile) {
+          formData.append('image', selectedFile); // Only append if a file is selected
+        }
+        const response = await axios.post(
+          `${localUrl}/auth/send-otp`,
+          formData,
+          {
+            headers: {
+              "Content-Type": "multipart/form-data",
+            },
+          }
+        );
+        
+
+        
+
+        if (response.status === 200) {
           setOtpSent(true);
-          console.log("OTP sent successfully.");
+          enqueueSnackbar(response.data.message, { variant: "success" });
         } else {
           console.log("Failed to send OTP.");
         }
-      })
-      .catch((error) => {
-        console.error("Error sending OTP:", error);
-      });
-  };
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    if (validate()) {
-      // Submit the form if valid
-      console.log("Form submitted successfully");
-    } else {
-      console.log("Form has errors.");
+      } else {
+        enqueueSnackbar("Please enter a valid inputs", { variant: "error" });
+      }
+    } catch (error) {
+      if (error.response.status === 400) {
+        // Display the error message from the API
+        console.error("Error 400: ", error.response.data.message);
+        enqueueSnackbar(error.response.data.message, { variant: "error" }); // Show the error message in an alert
+      } else if (error.response.status === 500) {
+        enqueueSnackbar(
+          `Server responded with status: ${error.response.status}`
+        );
+      }
+      console.error("Error sending OTP:", error.message); // More informative error message
     }
   };
+
+  const handleVerifyOtp = async () => {
+    try {
+      if (isNameValid && isPhoneValid && isOTPValid) {
+        const response = await axios.post(
+          `${localUrl}/auth/verify-otp`,
+          {
+            phone: mobile,
+
+            otp: otp,
+          },
+          {
+            headers: {
+              "Content-Type": "application/json",
+            },
+          }
+        );
+        const data = response.data;
+
+        console.log(data);
+
+        if (response.status === 200) {
+          setOtpVerified(true);
+
+          enqueueSnackbar(response.data.message, { variant: "success" });
+        } else {
+          setOtpVerified(false);
+          console.log("Failed to send OTP.");
+        }
+      } else {
+        enqueueSnackbar("Please enter a valid inputs", { variant: "error" });
+      }
+    } catch (error) {
+      if (error.response.status === 400) {
+        // Display the error message from the API
+        console.error("Error 400: ", error.response.data.message);
+        enqueueSnackbar(error.response.data.message, { variant: "error" }); // Show the error message in an alert
+      } else if (error.response.status === 500) {
+        enqueueSnackbar(
+          `Server responded with status: ${error.response.status}`
+        );
+      }
+      console.error("Error sending OTP:", error.message); // More informative error message
+    }
+  };
+
+  const handleSetPassword = async () => {
+    try {
+      if (
+        isNameValid &&
+        isPhoneValid &&
+        isOTPValid &&
+        isReferralCodeValid &&
+        password
+      ) {
+        const response = await axios.post(
+          `${localUrl}/auth/set-password-referral`,
+          {
+            phone: mobile,
+            password: password,
+            referralCode: referralCode,
+          },
+          {
+            headers: {
+              "Content-Type": "application/json",
+            },
+          }
+        );
+        
+  
+        if (response.status === 200) {
+          setOtpVerified(true);
+          enqueueSnackbar(response.data.message, { variant: "success" });
+          navigate("/login");
+        } else {
+          setOtpVerified(false);
+          console.log("Failed to send OTP.");
+        }
+      } else {
+        enqueueSnackbar("Please enter a valid input", { variant: "error" });
+      }
+    } catch (error) {
+      if (error.response) {
+        // Only access response if it exists
+        if (error.response.status === 400) {
+          console.error("Error 400: ", error.response.data.message);
+          enqueueSnackbar(error.response.data.message, { variant: "error" });
+        } else if (error.response.status === 500) {
+          enqueueSnackbar(
+            `Server responded with status: ${error.response.status}`,
+            { variant: "error" }
+          );
+        }
+      } else {
+        // Handle errors where there is no response (e.g., network errors)
+        console.error("Network error or no response from server:", error.message);
+        enqueueSnackbar("Network error, please try again later.", {
+          variant: "error",
+        });
+      }
+    }
+  };
+
+  
 
   return (
     <Root>
@@ -113,20 +304,25 @@ export const RegisterPage = () => {
         className="flex flex-col items-center justify-center min-h-screen bg-center bg-cover"
         style={{ backgroundImage: `url(${img2})` }}
       >
+        <ToastContainer
+          position="top-center"
+          autoClose={5000}
+          hideProgressBar={false}
+          newestOnTop={false}
+          closeOnClick
+          rtl={false}
+          pauseOnFocusLoss
+          draggable
+          pauseOnHover
+          theme="light"
+        />
         <div className="w-full max-w-4xl p-6 mx-auto ">
           <div className="flex flex-col items-center mb-6 text-center sm:block md:hidden">
             <img src={logo} alt="Lokardo Logo" className="h-20" />
           </div>
         </div>
         {/* Registration Button for Small Screens */}
-        <div className="flex-col items-center block mt-[-130px] mb-6 text-center lg:mt-6">
-          <button className="w-56 py-2 mt-32 font-bold text-yellow-600 bg-black rounded-full lg:w-80 lg:mt-0">
-            REGISTER NOW
-          </button>
-          <p className="mt-1 text-sm text-gray-300">
-            Please read the terms & conditions carefully before investing
-          </p>
-        </div>
+        
 
         {/* Registration Form */}
         <form className="w-full max-w-md p-4 mx-auto">
@@ -134,9 +330,9 @@ export const RegisterPage = () => {
             <div className="flex items-center justify-center w-24 h-24 overflow-hidden bg-gray-200 rounded-full">
               <label className="flex items-center justify-center w-full h-full cursor-pointer">
                 {/* Show selected image or camera icon */}
-                {selectedImage ? (
+                {imageUrl ? (
                   <img
-                    src={selectedImage}
+                    src={imageUrl}
                     alt="Selected"
                     className="object-cover w-full h-full rounded-full"
                   />
@@ -158,7 +354,7 @@ export const RegisterPage = () => {
                   type="file"
                   accept="image/*"
                   className="hidden"
-                  onChange={handleImageChange}
+                  onChange={handleFileChange}
                 />
               </label>
             </div>
@@ -174,33 +370,44 @@ export const RegisterPage = () => {
                 className="absolute text-gray-500 transform -translate-y-1/2 top-1/2 left-4"
               />
               <input
-                className="w-full px-12 py-2 text-sm placeholder-gray-500 border-none rounded-full focus:outline-none"
+                className={`w-full px-10 py-3 text-sm placeholder-gray-500 border-2 rounded-full focus:outline-none ${
+                  
+                     "border-gray-300"
+                }`}
                 type="text"
-                placeholder="Please enter your name"
+                placeholder=
+                  "Please enter your name"
+                
                 value={name}
-                onChange={(e) => setName(e.target.value)}
+                onChange={handleNameValidate}
               />
-              {errors.name && (
-                <p className="mt-0 ml-6 text-sm text-red-500">{errors.name}</p>
+              {isNameValid && (
+                <FaCheckCircle
+                  style={{
+                    fontSize: "1.25rem",
+                    width: "1.25rem",
+                    height: "1.25rem",
+                  }}
+                  className="absolute text-green-500 transform -translate-y-1/2 right-4 top-1/2"
+                />
               )}
-              <FaCheckCircle
-                style={{
-                  fontSize: "1.25rem",
-                  width: "1.25rem",
-                  height: "1.25rem",
-                }}
-                className="absolute text-green-500 transform -translate-y-2/3 right-4 top-1/2"
-              />
             </div>
 
             <div className="relative flex flex-col py-2 border-gray-300">
               <input
-                className="w-full px-12 py-2 text-sm placeholder-gray-500 border-none rounded-full focus:outline-none"
+                className={`w-full px-10 py-3 text-sm placeholder-gray-500 border-2 rounded-full focus:outline-none ${
+                 
+                     "border-gray-300"
+                }`}
                 type="tel"
-                placeholder="+91 Please enter mobile number"
+                placeholder={
+                  
+                     "Please enter your mobile number"
+                }
                 value={mobile}
-                onChange={(e) => setMobile(e.target.value)}
+                onChange={handlePhoneValidate}
               />
+
               <FaMobileAlt
                 style={{
                   fontSize: "1.25rem",
@@ -209,17 +416,29 @@ export const RegisterPage = () => {
                 }}
                 className="absolute text-gray-500 transform -translate-y-1/2 top-1/2 left-4"
               />
-              {errors.mobile && (
-                <p className="ml-6 text-sm text-red-500">{errors.mobile}</p>
+              {isPhoneValid && (
+                <button
+                  type="button"
+                  className={`absolute px-3 py-1 text-sm text-white transform -translate-y-1/2 bg-black rounded-full right-10 top-1/2 ${
+                    otpSent ? "opacity-50 cursor-not-allowed" : ""
+                  }`}
+                  onClick={handleSendOtp}
+                  disabled={otpSent} // Disable after OTP sent
+                >
+                  send
+                </button>
               )}
-              <FaCheckCircle
-                style={{
-                  fontSize: "1.25rem",
-                  width: "1.25rem",
-                  height: "1.25rem",
-                }}
-                className="absolute mt-3 text-green-500 right-4"
-              />
+
+              {isPhoneValid && (
+                <FaCheckCircle
+                  style={{
+                    fontSize: "1.25rem",
+                    width: "1.25rem",
+                    height: "1.25rem",
+                  }}
+                  className="absolute text-green-500 transform -translate-y-1/2 right-4 top-1/2"
+                />
+              )}
             </div>
 
             <div className="relative flex flex-col py-2 border-gray-300">
@@ -233,31 +452,44 @@ export const RegisterPage = () => {
                   className="absolute text-gray-500 transform -translate-y-1/2 top-1/2 left-4"
                 />
                 <input
-                  className="w-full px-12 py-2 pr-24 text-sm placeholder-gray-500 border-none rounded-full focus:outline-none"
-                  type="text"
-                  placeholder="SMS Verification code"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  className={`w-full px-10 py-3 text-sm placeholder-gray-500 border-2 rounded-full focus:outline-none ${
+                    isOTPValid
+                      ? "border-red-500 placeholder-red-500"
+                      : "border-gray-300"
+                  }`}
+                  type="tel"
+                  placeholder={"SMS Verification code"}
+                  value={otp}
+                  onChange={handleOTPValidate}
                 />
                 {/* Button inside input container */}
-                <button
-                  type="button"
-                  className="absolute px-3 py-1 text-sm text-white transform -translate-y-1/2 bg-black rounded-full right-10 top-1/2"
-                  onClick={handleSendOtp} // Trigger OTP function
-                >
-                  Send
-                </button>
-                <FaCheckCircle
-                  style={{
-                    fontSize: "1.25rem",
-                    width: "1.25rem",
-                    height: "1.25rem",
-                  }}
-                  className="absolute text-green-500 transform -translate-y-1/2 right-4 top-1/2"
-                />
+                {isOTPValid && (
+                  <button
+                    type="button"
+                    className={`absolute px-3 py-1 text-sm text-white transform -translate-y-1/2 bg-black rounded-full right-10 top-1/2 ${
+                      otpVerified ? "opacity-50 cursor-not-allowed" : ""
+                    }`}
+                    onClick={handleVerifyOtp}
+                    disabled={otpVerified} // Disable after OTP sent
+                  >
+                    verify
+                  </button>
+                )}
+                {isOTPValid && (
+                  <FaCheckCircle
+                    style={{
+                      fontSize: "1.25rem",
+                      width: "1.25rem",
+                      height: "1.25rem",
+                    }}
+                    className="absolute text-green-500 transform -translate-y-1/2 right-4 top-1/2"
+                  />
+                )}
               </div>
-              {errors.email && (
-                <p className="mt-0 ml-6 text-sm text-red-500">{errors.email}</p>
+              {otpSent && (
+                <p className="mt-2 text-sm text-green-600">
+                  OTP has been sent to your mobile.
+                </p>
               )}
             </div>
 
@@ -271,23 +503,26 @@ export const RegisterPage = () => {
                 className="absolute text-gray-500 transform -translate-y-1/2 top-1/2 left-4"
               />
               <input
-                className="w-full px-12 py-2 text-sm placeholder-gray-500 border-none rounded-full focus:outline-none"
+                className={`w-full px-10 py-3 text-sm placeholder-gray-500 border-2 rounded-full focus:outline-none ${
+                  isPasswordValid
+                    ? "border-red-500 placeholder-red-500"
+                    : "border-gray-300"
+                }`}
                 type="password"
-                placeholder="Please enter password"
+                placeholder={"Please enter your Password"}
                 value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                onChange={handlePasswordValidate}
               />
-              {errors.password && (
-                <p className="ml-6 text-sm text-red-500">{errors.password}</p>
+              {isPasswordValid && (
+                <FaCheckCircle
+                  style={{
+                    fontSize: "1.25rem",
+                    width: "1.25rem",
+                    height: "1.25rem",
+                  }}
+                  className="absolute text-green-500 transform -translate-y-1/2 right-4 top-1/2"
+                />
               )}
-              <FaCheckCircle
-                style={{
-                  fontSize: "1.25rem",
-                  width: "1.25rem",
-                  height: "1.25rem",
-                }}
-                className="absolute text-green-500 transform -translate-y-1/2 right-4 top-1/2"
-              />
             </div>
 
             <div className="relative">
@@ -300,58 +535,54 @@ export const RegisterPage = () => {
                 className="absolute text-gray-500 transform -translate-y-1/2 top-1/2 left-4"
               />
               <input
-                className="w-full px-12 py-2 text-sm placeholder-gray-500 border-none rounded-full focus:outline-none"
+                className={`w-full px-10 py-3 text-sm placeholder-gray-500 border-2 rounded-full focus:outline-none ${
+                  isReferralCodeValid
+                    ? "border-red-500 placeholder-red-500"
+                    : "border-gray-300"
+                }`}
                 type="text"
-                placeholder="Please enter referral code"
+                placeholder={"Please enter your referral code"}
                 value={referralCode}
-                onChange={(e) => setReferralCode(e.target.value)}
+                onChange={handleRefferValidate}
               />
-              {errors.referralCode && (
-                <p className="ml-6 text-sm text-red-500">
-                  {errors.referralCode}
-                </p>
+
+              {isReferralCodeValid && (
+                <FaCheckCircle
+                  style={{
+                    fontSize: "1.25rem",
+                    width: "1.25rem",
+                    height: "1.25rem",
+                  }}
+                  className="absolute text-green-500 transform -translate-y-1/2 right-4 top-1/2"
+                />
               )}
-              <FaCheckCircle
-                style={{
-                  fontSize: "1.25rem",
-                  width: "1.25rem",
-                  height: "1.25rem",
-                }}
-                className="absolute text-green-500 transform -translate-y-1/2 right-4 top-1/2"
-              />
             </div>
           </div>
 
           <div className="flex flex-col items-center justify-center py-10">
             {/* Payment Section */}
-            <div className="flex flex-col mb-4 space-y-2">
-              <button className="py-2 mx-auto text-xl font-bold text-black bg-white rounded-full w-60">
+            <div className="flex flex-col space-y-2 ">
+              {/* <button className="py-2 mx-auto mt-6 mb-6 text-xl font-bold text-black bg-white rounded-full w-52 ">
                 Payment Section
-              </button>
+              </button> */}
 
               {/* Payment options */}
-              <div className="flex flex-col space-y-4">
+              {/* <div className="flex flex-col space-y-4">
                 <button className="w-48 py-1 mx-auto text-black bg-white rounded-full">
                   Pay via UPI
                 </button>
                 <button className="w-48 py-1 mx-auto text-black bg-white rounded-full">
                   Pay via QR
                 </button>
-              </div>
+              </div> */}
 
-              {/* Success and Enter buttons */}
-              <div className="flex flex-col">
-                <button className="py-2 mx-auto mt-5 text-xl font-bold text-white bg-green-500 rounded-full w-72">
-                  REGISTRATION SUCCESSFUL
-                </button>
-
-                <button
-                  className="w-32 py-2 mx-auto mt-5 font-bold text-yellow-600 bg-black rounded-full"
-                  onClick={handleSubmit}
-                >
-                  ENTER
-                </button>
-              </div>
+              <button
+                onClick={handleSetPassword}
+                type="button"
+                className="w-56 py-2 mt-32 font-bold text-yellow-600 bg-black rounded-full lg:w-80 lg:mt-0"
+              >
+                REGISTER NOW
+              </button>
             </div>
 
             <p className="mt-2 text-sm text-gray-300">
@@ -363,7 +594,7 @@ export const RegisterPage = () => {
           </div>
         </form>
         {/* Terms & Conditions */}
-        <div className="mt-8 mb-16 text-center">
+        <div className="mb-12 text-center ">
           <Link to="/terms-and-conditions" className="text-white underline ">
             Terms & Condition
           </Link>
